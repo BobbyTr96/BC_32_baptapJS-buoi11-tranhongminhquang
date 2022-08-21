@@ -97,6 +97,36 @@ NhanVien.prototype.rank = function () {
 
 // tạo 1 mảng lưu object nhân viên sẽ được thêm mới vào khi nhấn nút addNhanVien
 let nhanViens = [];
+
+//function khởi tạo
+function init() {
+  // B1 : Lấy dữ liệu nhanViens từ localStorage lên
+  // NOTE 1 : cách viết ngoặc như bên dưới thì nó sẽ chạy từ bên trong ngoặc trước sau đó nó sẽ lấy giá trị đc trả ra để làm tham số tiếp tục thực hiện hàm JSON bên ngoài sau đó nó sẽ lấy giá trị có đc gán ngc lại cho array nhanViens
+  // NOTE 2 : nếu trong trường hợp dưới localStorage ko có dữ liệu thì máy sẽ trả về 'null' mà 'null' gán ngược cho array 'nhanViens' thì tiếp theo phía dưới ta sẽ ko work đc vì thế ta thêm toán tử OR(||) để thêm hoặc mảng rỗng để khi dưới local ko có dữ liệu thì máy sẽ chọn chuỗi rỗng để gán cho array nhanViens để phía dưới ta có thể work đc
+  nhanViens = JSON.parse(localStorage.getItem("nhanVien")) || [];
+
+  //NOTE 3 : Vì JSON không thể lưu trữ dữ liệu dạng method/function , nên khi lấy lên từ localStorage sẽ bị mất những method ban đầu , vì vậy ta cần duyệt qua mảng lấy từng phần tử object nhanVien và ta new lại mới qua function contructor NhanVien bằng phương thức map để lấy lại những method bị mất
+  nhanViens = nhanViens.map((nhanVien) => {
+    return new NhanVien(
+      nhanVien.id,
+      nhanVien.name,
+      nhanVien.email,
+      nhanVien.password,
+      nhanVien.datePicker,
+      nhanVien.salary,
+      nhanVien.position,
+      nhanVien.workTime
+    );
+    
+  });
+  
+
+  //B2 chạy lại array nhanViens để hiển thị ra trình duyệt
+  display(nhanViens);
+}
+// Hàm sẽ auto thực hiện khi chương trình khởi chạy
+init();
+
 //======== Add nhân viên
 function addNhanVien() {
   //B1 DOM lấy thông tin từ người dùng
@@ -128,8 +158,9 @@ function addNhanVien() {
     workTime
   );
 
-  // B3 : thêm nhaVien vào mảng nhanViens
+  // B3 : thêm nhaVien vào mảng nhanViens và lưu trữ vào localStorage
   nhanViens.push(nhanVien);
+  localStorage.setItem("nhanVien", JSON.stringify(nhanViens));
 
   // B4 : hiển thị ra giao diện
   display(nhanViens);
@@ -163,6 +194,9 @@ function deleteNhanVien(nhanVienID) {
     // đặt điều kiện nếu nhanVien.id !== nhanVienID ( trả ra true) thì sẽ lấy những giá trị đó trả ra bên ngoài mảng mới , trả ra false thì bỏ qua
     return nhanVien.id !== nhanVienID;
   });
+
+  // Sau khi xóa dữ liệu mảng ta cần cập nhật lưu trữ lại ở localStorage
+  localStorage.setItem("nhanVien", JSON.stringify(nhanViens));
 
   // Sau khi thay đổi dữ liệu của mảng array, ta cần gọi lại hàm display và truyền vào array nhanViens để cập nhật lại giao diện
   display(nhanViens);
@@ -232,8 +266,8 @@ DOM("#btnCapNhat").onclick = function () {
   let workTime = DOM("#gioLam").value * 1;
 
   //kiểm tra validation
-  if(!validateForm()){
-    return false
+  if (!validateForm()) {
+    return false;
   }
 
   //B2 : tạo object nhanVien chứa các thông tin đã chỉnh sửa ,
@@ -255,11 +289,14 @@ DOM("#btnCapNhat").onclick = function () {
   //gán giá trị 'nhanVien' cho mảng chứa chỉ mục đã tìm được nhanViens[index]
   nhanViens[index] = nhanVien;
 
+  // Sau khi thay đổi giá trị trong mảng ta cần cập nhật lại ở dưới localStorage
+  localStorage.setItem("nhanVien", JSON.stringify(nhanViens));
+
   //B4 :  hiển thị ra giao diện
   display(nhanViens);
 
   //B5 : reset lại form
-  resetForm()
+  resetForm();
 };
 
 // Bonus Hàm reset form để khi nhấn vào nút thêm thì reset lại các ô input thành rỗng
@@ -277,8 +314,6 @@ function resetForm() {
   DOM("#tknv").disabled = false;
   DOM("#btnThemNV").disabled = false;
 }
-
-
 
 //===========Validatetion====================================================
 //============Hàm kiểm tra ID nhân viên
